@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wangpan_client/request/index.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -9,6 +10,8 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
+
+  HttpUtil http = HttpUtil();
 
   // 1. 核心数据源（初始加载10条）
   List<int> _dataList = List.generate(10, (index) => index);
@@ -130,7 +133,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                       color: Colors.blue[100 + (item % 9) * 100],
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
-                        onTap: () {
+                        onTap: () async {
                           // todo, 点击事件
                           print('点击了 $item');
                           Navigator.pushNamed(context, '/preview', arguments: { 'id': item });
