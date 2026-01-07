@@ -1,5 +1,7 @@
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:get/get.dart';
+import 'package:wangpan_client/store/global/index.dart';
 
 class Storage {
   static final Storage _instance = Storage._internal();
@@ -8,8 +10,10 @@ class Storage {
 
   late SharedPreferences _sharedPreferences;
 
-  void init() async {
+  Future<void> init() async {
+    final globalStore = Get.put(GlobalStore());
     _sharedPreferences = await SharedPreferences.getInstance();
+    globalStore.changeStorageInitialized(true);
   }
 
   Future<bool> setString(String key, String value) async {

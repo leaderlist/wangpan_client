@@ -30,7 +30,6 @@ class _MyPreviewPageState extends State<MyPreviewPage> {
 
   void _onScroll() {
     // TODO: 滚动监听
-    print(_scrollController.position.pixels); // 滚动位置
     if (_scrollController.position.pixels >=
             _scrollController.position.maxScrollExtent - 60 &&
         !_isLoading &&
@@ -57,8 +56,6 @@ class _MyPreviewPageState extends State<MyPreviewPage> {
       _fileList = _fileList; // 重新赋值以触发UI更新
       _hasMore = _fileList.length < 100;
     });
-
-    print(_fileList);
   }
 
   Widget _renderTitle() {

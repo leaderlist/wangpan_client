@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wangpan_client/interface/login.dart';
 import 'package:wangpan_client/request/index.dart';
 import 'package:wangpan_client/store/login/index.dart';
+import 'package:wangpan_client/store/user/index.dart';
 import 'package:wangpan_client/utils/encrypt.dart';
 
 class MyLoginPage extends StatefulWidget {
@@ -14,15 +15,17 @@ class MyLoginPage extends StatefulWidget {
 class _LoginPageState extends State<MyLoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _loginStore = LoginStore();
+  final _userStore = UserStore();
   // 存储表单输入值
   String _username = '';
   String _password = '';
+
+  bool _isObscure = true;
 
   HttpUtil http = HttpUtil();
 
   void _submitForm() async {
     final currentState = _formKey.currentState;
-    print(currentState);
     if (currentState != null && currentState.validate()) {
       _formKey.currentState!.save();
       // TODO: 调用登录接口
@@ -33,9 +36,13 @@ class _LoginPageState extends State<MyLoginPage> {
         ),
       );
 
-      _loginStore.login(data, loginCallback: (data) {
-        Navigator.pushNamed(context, '/');
-      }, syncLocal: true);
+      _loginStore.login(
+        data,
+        loginCallback: (data) {
+          _userStore.fetchUserInfo();
+          Navigator.pushNamed(context, '/');
+        },
+      );
     }
   }
 
@@ -108,14 +115,25 @@ class _LoginPageState extends State<MyLoginPage> {
                   ),
                   const SizedBox(height: 24),
                   TextFormField(
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: '请输入密码',
-                      prefixIcon: Icon(Icons.lock),
-                      border: OutlineInputBorder(
+                      prefixIcon: const Icon(Icons.lock),
+                      border: const OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(12)),
                       ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isObscure ? Icons.visibility_off : Icons.visibility,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isObscure = !_isObscure;
+                          });
+                        },
+                      ),
                     ),
-                    obscureText: true,
+                    obscureText: _isObscure,
+
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return '请输入密码';

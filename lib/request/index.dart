@@ -1,8 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:wangpan_client/components/MessengerService/index.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:wangpan_client/store/login/index.dart';
 
 Map<String, String> _resErrorMsgMap = {
   'password is incorrect': '密码错误',
@@ -15,6 +15,8 @@ class HttpUtil {
 
   late Dio dio;
   final CancelToken _cancelToken = CancelToken();
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  // final LoginStore _loginStore = LoginStore();
 
   // 初始化
   void init({
@@ -23,7 +25,6 @@ class HttpUtil {
     int receiveTimeout = 15000,
     List<Interceptor>? interceptors,
   }) {
-    print(_instance);
     dio = Dio(BaseOptions(
       baseUrl: baseUrl,
       connectTimeout: Duration(milliseconds: connectTimeout),
@@ -49,12 +50,12 @@ class HttpUtil {
         },
         onResponse: (response, handler) {
           if (kDebugMode) {
-            print('响应数据111: ${response.data}');
+            print('响应数据: ${response.data}');
           }
 
-          late String msg;
+          String msg = '';
 
-          print('response.statusCode---${response.statusCode}---response.data---${response.data}');
+          print('response.statusCode---${response.statusCode}');
           try {
           if (response.data.containsKey('code')) {
             switch (response.data['code']) {
@@ -62,23 +63,23 @@ class HttpUtil {
                 break;
               case 400:
                 msg = _resErrorMsgMap[response.data['message']] ?? response.data['message'];
+              case 401:
+                msg = '登录已过期，请重新登录！';
+                final context = navigatorKey.currentContext;
+                if (context != null) {
+                  // _loginStore.logout(logoutCallback: () {
+                  //   Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                  // });
+                }
               case 429:
                 msg = '请求过于频繁,请稍后重试！';
               default:
-                msg = '未知错误';
+                msg = '';
             }
           }
           print('msg---$msg');
 
-          if (msg != null) {
-            // ScaffoldMessenger.of(context).showSnackBar(
-            //   SnackBar(
-            //     content: Text('这是一个消息提示'),
-            //     duration: Duration(seconds: 2),
-            //     backgroundColor: Colors.blue,
-            //   ),
-            // );
-            // MessengerService.showError(msg);
+          if (msg != '') {
             Fluttertoast.showToast(
               msg: msg,
               toastLength: Toast.LENGTH_SHORT,

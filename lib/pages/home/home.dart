@@ -36,14 +36,14 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    print('AppLifecycleState: $state');
-    if (state == AppLifecycleState.resumed) {
-      // 应用从后台切换到前台时，重新加载页面数据
-      print(222222);
-    }
-  }
+  // @override
+  // void didChangeAppLifecycleState(AppLifecycleState state) {
+  //   print('AppLifecycleState: $state');
+  //   if (state == AppLifecycleState.resumed) {
+  //     // 应用从后台切换到前台时，重新加载页面数据
+  //     print(222222);
+  //   }
+  // }
 
   void _onScroll() {
     if (_scrollController.position.pixels >=
