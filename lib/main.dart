@@ -19,17 +19,22 @@ void main() {
 class MyApp extends StatelessWidget {
   MyApp({super.key});
 
+  // 1. 创建全局 key
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
   final LoginStore loginStore = Get.put(LoginStore());
   final GlobalStore globalStore = Get.put(GlobalStore());
 
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
+      navigatorKey: navigatorKey,
       theme: ThemeData(primarySwatch: Colors.blue),
       builder: EasyLoading.init(),
       home: Obx(() {
         // 1. 首次加载：显示加载页（模拟 1 秒延迟，可选）
         if (loginStore.isLoading.value || !globalStore.isStorageInitialized.value) {
+          print(11111);
           return Scaffold(
             body: Center(
               child: Column(
@@ -43,9 +48,9 @@ class MyApp extends StatelessWidget {
             ),
           );
         }
-
+        print(22222);
         // 2. 实时判断登录状态（响应式）
-        return loginStore.getToken().isNotEmpty ? MyHomePage() : MyLoginPage();
+        return MyHomePage();
       }),
       routes: MyRouter().routes,
       debugShowCheckedModeBanner: false,

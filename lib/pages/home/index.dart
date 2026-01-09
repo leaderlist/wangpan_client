@@ -3,6 +3,8 @@ import "package:wangpan_client/pages/Home/list.dart";
 import "package:wangpan_client/pages/home/admin.dart";
 import "package:wangpan_client/pages/home/home.dart";
 import "package:wangpan_client/pages/home/mine.dart";
+import "package:wangpan_client/router/index.dart";
+import "package:wangpan_client/store/login/index.dart";
 import "package:wangpan_client/store/user/index.dart";
 
 class MyHomePage extends StatefulWidget {
@@ -14,6 +16,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   UserStore _userStore = UserStore();
+  LoginStore _loginStore = LoginStore();
 
   int _currentIndex = 0;
 
@@ -24,6 +27,16 @@ class _MyHomePageState extends State<MyHomePage> {
     if (UserStore().isAdmin())
       const Admin()
   ].cast<Widget>();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_loginStore.getToken().isEmpty) {
+      Navigator.pushNamed(context, MyRouter.login);
+    }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'dart:developer' as developer;
+
+import 'package:wangpan_client/main.dart';
+import 'package:wangpan_client/router/index.dart';
+import 'package:wangpan_client/store/fs/index.dart';
 import 'package:wangpan_client/store/login/index.dart';
 
-Map<String, String> _resErrorMsgMap = {
-  'password is incorrect': '密码错误',
-};
+Map<String, String> _resErrorMsgMap = {'password is incorrect': '密码错误'};
 
 class HttpUtil {
   static final HttpUtil _instance = HttpUtil._internal();
@@ -25,14 +29,14 @@ class HttpUtil {
     int receiveTimeout = 15000,
     List<Interceptor>? interceptors,
   }) {
-    dio = Dio(BaseOptions(
-      baseUrl: baseUrl,
-      connectTimeout: Duration(milliseconds: connectTimeout),
-      receiveTimeout: Duration(milliseconds: receiveTimeout),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    ));
+    dio = Dio(
+      BaseOptions(
+        baseUrl: baseUrl,
+        connectTimeout: Duration(milliseconds: connectTimeout),
+        receiveTimeout: Duration(milliseconds: receiveTimeout),
+        headers: {'Content-Type': 'application/json'},
+      ),
+    );
 
     // 添加默认拦截器
     dio.interceptors.addAll([
@@ -50,42 +54,52 @@ class HttpUtil {
         },
         onResponse: (response, handler) {
           if (kDebugMode) {
-            print('响应数据: ${response.data}');
+            print('响应数据: ${response}');
           }
 
           String msg = '';
 
           print('response.statusCode---${response.statusCode}');
           try {
-          if (response.data.containsKey('code')) {
-            switch (response.data['code']) {
-              case 200:
-                break;
-              case 400:
-                msg = _resErrorMsgMap[response.data['message']] ?? response.data['message'];
-              case 401:
-                msg = '登录已过期，请重新登录！';
-                final context = navigatorKey.currentContext;
-                if (context != null) {
-                  // _loginStore.logout(logoutCallback: () {
-                  //   Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-                  // });
-                }
-              case 429:
-                msg = '请求过于频繁,请稍后重试！';
-              default:
-                msg = '';
+            if (response.data.containsKey('code')) {
+              switch (response.data['code']) {
+                case 200:
+                  break;
+                case 400:
+                  msg =
+                      _resErrorMsgMap[response.data['message']] ??
+                      response.data['message'];
+                case 401:
+                  msg = '登录已过期，请重新登录！';
+                  final context = MyApp.navigatorKey.currentContext;
+                  print('context---$context');
+                  FsStore().clearFsStore();
+                  context != null
+                      ? LoginStore().logout(
+                          logoutCallback: () {
+                            Navigator.pushNamedAndRemoveUntil(
+                              context,
+                              MyRouter.login,
+                              (route) => false,
+                            );
+                          },
+                        )
+                      : null;
+                case 429:
+                  msg = '请求过于频繁,请稍后重试！';
+                default:
+                  msg = '';
+              }
             }
-          }
-          print('msg---$msg');
+            print('msg---$msg');
 
-          if (msg != '') {
-            Fluttertoast.showToast(
-              msg: msg,
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-            );
-          }
+            if (msg != '') {
+              Fluttertoast.showToast(
+                msg: msg,
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+              );
+            }
           } catch (e) {
             print('e---$e');
           }
@@ -154,7 +168,14 @@ class HttpUtil {
     String path, {
     Map<String, dynamic>? queryParameters,
     Options? options,
+    bool showLoading = true,
   }) async {
+    showLoading
+        ? EasyLoading.show(
+            status: '加载中...',
+            maskType: EasyLoadingMaskType.black,
+          )
+        : null;
     try {
       final response = await dio.get<T>(
         path,
@@ -162,8 +183,11 @@ class HttpUtil {
         options: options,
         cancelToken: _cancelToken,
       );
+
+      showLoading ? EasyLoading.dismiss() : null;
       return response.data!;
     } catch (e) {
+      showLoading ? EasyLoading.dismiss() : null;
       rethrow;
     }
   }
@@ -174,7 +198,14 @@ class HttpUtil {
     D? data,
     Map<String, dynamic>? queryParameters,
     Options? options,
+    bool showLoading = true,
   }) async {
+    showLoading
+        ? EasyLoading.show(
+            status: '加载中...',
+            maskType: EasyLoadingMaskType.black,
+          )
+        : null;
     try {
       final response = await dio.post<T>(
         path,
@@ -183,8 +214,11 @@ class HttpUtil {
         options: options,
         cancelToken: _cancelToken,
       );
+
+      showLoading ? EasyLoading.dismiss() : null;
       return response.data!;
     } catch (e) {
+      showLoading ? EasyLoading.dismiss() : null;
       rethrow;
     }
   }
@@ -228,6 +262,35 @@ class HttpUtil {
       return response.data!;
     } catch (e) {
       rethrow;
+    }
+  }
+
+  static Future<String?> getDirectUrl(String shareUrl) async {
+    try {
+      // 使用 Dio 获取重定向后的真实 URL
+      Dio dio = Dio();
+      developer.log(shareUrl);
+      Response response = await dio.get(
+        shareUrl,
+        options: Options(
+          followRedirects: false,
+          headers: {
+            'User-Agent':
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept':
+                'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+          },
+        ),
+      );
+
+      // 从响应头中获取实际下载链接
+      String? location = response.headers['location']?.first;
+      print('直接链接: $location---$response');
+      return location;
+    } catch (e) {
+      print('获取直接链接失败: $e');
+      return null;
     }
   }
 

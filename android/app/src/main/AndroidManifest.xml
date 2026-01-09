@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 允许加载http视频（可选，若视频链接是http需加） -->
+    <application android:usesCleartextTraffic="true">
+    </application>
     <application
         android:label="wangpan_client"
         android:name="${applicationName}"

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wangpan_client/constants/user.dart';
+import 'package:wangpan_client/router/index.dart';
 import 'package:wangpan_client/store/login/index.dart';
 import 'package:wangpan_client/store/user/index.dart';
 
@@ -99,7 +100,7 @@ class _MineState extends State<Mine> {
                 child: ElevatedButton.icon(
                   onPressed: () {
                     _loginStore.logout(logoutCallback: () {
-                      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                      Navigator.pushNamed(context, MyRouter.login);
                     });
                   },
                   label: Text('退出登录'),

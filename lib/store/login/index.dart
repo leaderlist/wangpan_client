@@ -28,7 +28,8 @@ class LoginStore extends GetxController {
             print('登录成功：--${result}--$syncLocal');
             isLogin.value = true;
             token.value = result['data']!['token'];
-            await Future.delayed(Duration(seconds: 2));
+            await Future.delayed(Duration(seconds: 1));
+            print('token.value：--${token.value}');
             loginCallback?.call(result['data']);
             if (!syncLocal) return;
 

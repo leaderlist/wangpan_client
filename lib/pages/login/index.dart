@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wangpan_client/interface/login.dart';
 import 'package:wangpan_client/request/index.dart';
+import 'package:wangpan_client/router/index.dart';
 import 'package:wangpan_client/store/login/index.dart';
 import 'package:wangpan_client/store/user/index.dart';
 import 'package:wangpan_client/utils/encrypt.dart';
@@ -40,7 +41,7 @@ class _LoginPageState extends State<MyLoginPage> {
         data,
         loginCallback: (data) {
           _userStore.fetchUserInfo();
-          Navigator.pushNamed(context, '/');
+          Navigator.of(context).canPop() ? Navigator.pop(context) : Navigator.pushNamed(context, MyRouter.home);
         },
       );
     }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wangpan_client/request/index.dart';
+import 'package:wangpan_client/router/index.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -136,7 +137,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                         onTap: () async {
                           // todo, 点击事件
                           print('点击了 $item');
-                          Navigator.pushNamed(context, '/preview', arguments: { 'id': item });
+                          Navigator.pushNamed(context, MyRouter.preview, arguments: { 'id': item });
                         },
                         child: Center(
                           child: Text(

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
+
 import 'package:wangpan_client/components/path_navigator/index.dart';
+import 'package:wangpan_client/constants/file.dart';
 import 'package:wangpan_client/constants/icon.dart';
 import 'package:wangpan_client/interface/fs.dart';
+import 'package:wangpan_client/router/index.dart';
 import 'package:wangpan_client/store/fs/index.dart';
+import 'package:wangpan_client/utils/file.dart';
 
 class ListPage extends StatefulWidget {
   const ListPage({super.key});
@@ -16,7 +20,7 @@ class ListPage extends StatefulWidget {
 class _ListState extends State<ListPage> {
   late FsStore _fsStore;
   int pageCount = 1;
-  int pageSize = 20;
+  int pageSize = 0;
 
   late ScrollController _scrollController; // 添加滚动控制器
 
@@ -49,6 +53,7 @@ class _ListState extends State<ListPage> {
   }
 
   Future<void> _handlePathItemTap(FsContent path) async {
+    List<FsContent> copyPathList = List.from(pathList);
     if (path.is_dir) {
       Map<String, dynamic> data = {
         'page': pageCount,
@@ -56,8 +61,6 @@ class _ListState extends State<ListPage> {
         'refresh': false,
         'password': '',
       };
-
-      List<FsContent> copyPathList = List.from(pathList);
       FsContent? copyPath = currentPath;
 
       if (path.is_dir) {
@@ -80,7 +83,16 @@ class _ListState extends State<ListPage> {
       }
     } else {
       // 点击文件，支持文件预览
-      Fluttertoast.showToast(msg: '点击了文件,暂不支持预览～');
+      String filePath = '/${copyPathList.map((e) => e.name).join('/')}/${path.name}';
+      bool result =  await _fsStore.getFileData(
+        data: {'path': filePath, 'password': ''},
+      );
+
+      if (!result) return;
+      
+      if (mounted) {
+        Navigator.pushNamed(context, MyRouter.file_view);
+      }
     }
   }
 
@@ -152,6 +164,9 @@ class _ListState extends State<ListPage> {
         controller: _scrollController, // 添加控制器
         itemBuilder: (context, index) {
           int itemType = _fsStore.fsListResData.value!.content[index].type;
+          String itemTypeStr = getFileType(_fsStore.fsListResData.value!.content[index].name);
+          MyFileType fileType = FileTypeExtension.fromExtension(itemTypeStr, sourceType: itemType);
+          bool isDir = _fsStore.fsListResData.value!.content[index].is_dir;
           return Container(
             decoration: BoxDecoration(
               border: index != 0
@@ -162,7 +177,7 @@ class _ListState extends State<ListPage> {
             child: ListTile(
               title: Row(
                 children: [
-                  ?FileTypeUtil.intToIcon[itemType],
+                  Icon(isDir ? Icons.folder : fileType.defaultIcon, color: file_icon_color,),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
